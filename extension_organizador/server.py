@@ -1,3 +1,4 @@
+# Es un organizar.py adaptado para que funciones como un servidor web que recibe solicitudes POST para mover archivos a carpetas específicas
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
