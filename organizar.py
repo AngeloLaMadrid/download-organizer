@@ -84,12 +84,24 @@ def check_folder_icons(downloads_folder):
     for category in extensiones:
         folder_path = os.path.join(downloads_folder, category)
         icon_file = os.path.join(icons_folder, f"{category}.ico")
+        ini_path = os.path.join(folder_path, "desktop.ini")
+        
         if not os.path.exists(icon_file):
             print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
             continue
             
+        # Verificar si ya existe el desktop.ini y tiene el ícono configurado
+        if os.path.exists(ini_path):
+            try:
+                with open(ini_path, 'r') as f:
+                    content = f.read()
+                    if icon_file in content:
+                        print(f"{Colors.YELLOW}📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
+                        continue
+            except Exception:
+                pass  # Si hay error al leer, intentamos crear uno nuevo
+            
         # Crear el archivo desktop.ini
-        ini_path = os.path.join(folder_path, "desktop.ini")
         try:
             # Asegurar que la carpeta esté marcada como sistema
             os.system(f'attrib +s "{folder_path}"')
