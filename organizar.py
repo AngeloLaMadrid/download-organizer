@@ -76,7 +76,8 @@ def move_file(file_path, destination_folder):
 
 def check_folder_icons(downloads_folder):
     """Verifica y aplica íconos a cada carpeta"""
-    show_icons_messages = True  # Cambiar a True o False para mostrar mensajes en consola
+    
+    show_icons_messages = False  # Cambiar a True o False para mostrar mensajes en consola !!!!!!!
     
     
     script_dir = os.path.dirname(os.path.abspath(__file__))
