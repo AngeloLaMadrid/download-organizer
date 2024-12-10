@@ -1,16 +1,14 @@
 let timeoutId;
-const NOTIFICATION_DELAY = 500; // milisegundos de espera para agrupar notificaciones
-const notificationQueue = new Set(); // Para evitar notificaciones duplicadas
+const NOTIFICATION_DELAY = 500;
+const notificationQueue = new Set();
 
 chrome.downloads.onChanged.addListener(function(downloadDelta) {
-  // Solo procesamos cuando la descarga está completa
   if (!downloadDelta.state || downloadDelta.state.current !== 'complete') return;
 
-  clearTimeout(timeoutId);   // Cancela el timeout anterior si existe
-  const downloadId = downloadDelta.id;   // ID de la descarga actual
-  notificationQueue.add(downloadId);  // Agrega la descarga a la cola
+  clearTimeout(timeoutId);
+  const downloadId = downloadDelta.id;
+  notificationQueue.add(downloadId);
 
-  // Nuevo timeout para procesar las descargas en lote
   timeoutId = setTimeout(() => {
     processBatchDownloads(Array.from(notificationQueue));
     notificationQueue.clear();
@@ -18,35 +16,55 @@ chrome.downloads.onChanged.addListener(function(downloadDelta) {
 });
 
 function processBatchDownloads(downloadIds) {
-  // Ntificación inicial
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "verificar.png",
-    title: "Organizando descargas",
-    message: "Procesando archivos..."
-  });
+  // Procesar cada descarga individualmente
+  const promises = downloadIds.map(id => 
+    new Promise((resolve, reject) => {
+      chrome.downloads.search({id: id}, function(downloads) {
+        if (!downloads || !downloads.length) {
+          reject(new Error(`No se encontró la descarga ${id}`));
+          return;
+        }
 
-  // Procesa todas las descargas
-  chrome.downloads.search({id: downloadIds}, function(downloads) {
-    const promises = downloads.map(download => 
-      fetch('http://localhost:8000', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({file_path: download.filename})
-      })
-      .then(response => response.json())
-    );
+        const download = downloads[0];
+        fetch('http://localhost:8000', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({file_path: download.filename})
+        })
+        .then(response => response.json())
+        .then(resolve)
+        .catch(reject);
+      });
+    })
+  );
 
-    // Procesa todas las respuestas juntas y sola notificación final
-    Promise.all(promises)
-      .then(results => {
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "verificar.png",
-          title: "Proceso completado",
-          message: `${results.length} archivo(s) organizados`
-        });
-      })
-      .catch(error => console.error('Error:', error));
-  });
+  Promise.all(promises)
+    .then(results => {
+      // Extraer las rutas de destino
+      const destinations = results
+        .map(result => result.destination)
+        .filter(Boolean); // Eliminar valores nulos o undefined
+
+      // Crear mensaje con las ubicaciones
+      const locationsMessage = destinations
+        .map(path => `• ${path}`)
+        .join('\n');
+
+      // Mostrar una única notificación
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "verificar.png",
+        title: `${results.length} archivo(s) organizados`,
+        message: locationsMessage || "No se pudo obtener la ubicación"
+      });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "error.png",
+        title: "Error",
+        message: "Ocurrió un error al organizar los archivos"
+      });
+    });
 }
