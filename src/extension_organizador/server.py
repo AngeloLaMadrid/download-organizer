@@ -77,17 +77,17 @@ def move_file(file_path, destination_folder):
 
 def check_folder_icons(downloads_folder):
     """Verifica y aplica íconos a cada carpeta"""
-    
-    show_icons_messages = False  # Cambiar a True o False para mostrar mensajes en consola !!!!!!!    
-    
+    show_icons_messages = True
     script_dir = os.path.dirname(os.path.abspath(__file__))
     icons_folder = os.path.join(script_dir, "icons")
-    
+    carpetas_con_iconos = 0
+    carpetas_procesadas = []
+
     if not os.path.exists(icons_folder):
         if show_icons_messages:
             print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
         return
-    
+
     for category in extensiones:
         folder_path = os.path.join(downloads_folder, category)
         icon_file = os.path.join(icons_folder, f"{category}.ico")
@@ -103,13 +103,15 @@ def check_folder_icons(downloads_folder):
                 with open(ini_path, 'r') as f:
                     content = f.read()
                     if icon_file in content:
-                        if show_icons_messages:
-                            print(f"{Colors.YELLOW}   📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
+                        carpetas_con_iconos += 1
+                        carpetas_procesadas.append(category)
                         continue
             except Exception:
                 pass
             
         try:
+            # Eliminar el atributo de solo lectura si está presente
+            os.system(f'attrib -r "{ini_path}"')
             os.system(f'attrib +s "{folder_path}"')
             
             with open(ini_path, 'w') as f:
@@ -119,12 +121,75 @@ def check_folder_icons(downloads_folder):
                 f.write("ConfirmFileOp=0\n")
             
             os.system(f'attrib +s +h "{ini_path}"')
-            if show_icons_messages:
-                print(f"{Colors.GREEN}✅ Ícono aplicado a la carpeta '{category}'{Colors.RESET}")
+            carpetas_con_iconos += 1
+            carpetas_procesadas.append(category)
             
         except Exception as e:
             if show_icons_messages:
-                print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
+                print(f"{Colors.RED}   ❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
+
+    # Mostrar resumen final
+    if carpetas_con_iconos > 0:
+        print(f"{Colors.YELLOW}  ↪🗂️  Carpetas con sus iconos correspondientes: {', '.join(carpetas_procesadas)}{Colors.RESET} \n")
+    else:
+        print(f"{Colors.YELLOW}↪⚠️ No se encontraron carpetas con íconos aplicados{Colors.RESET}")
+    """Verifica y aplica íconos a cada carpeta"""
+    show_icons_messages = True
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    icons_folder = os.path.join(script_dir, "icons")
+    carpetas_con_iconos = 0
+    carpetas_procesadas = []
+
+    if not os.path.exists(icons_folder):
+        if show_icons_messages:
+            print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
+        return
+
+    for category in extensiones:
+        folder_path = os.path.join(downloads_folder, category)
+        icon_file = os.path.join(icons_folder, f"{category}.ico")
+        ini_path = os.path.join(folder_path, "desktop.ini")
+        
+        if not os.path.exists(icon_file):
+            if show_icons_messages:
+                print(f"{Colors.RED}   ⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
+            continue
+            
+        if os.path.exists(ini_path):
+            try:
+                with open(ini_path, 'r') as f:
+                    content = f.read()
+                    if icon_file in content:
+                        carpetas_con_iconos += 1
+                        carpetas_procesadas.append(category)
+                        continue
+            except Exception:
+                pass
+            
+        try:
+            # Eliminar el atributo de solo lectura si está presente
+            os.system(f'attrib -r "{ini_path}"')
+            os.system(f'attrib +s "{folder_path}"')
+            
+            with open(ini_path, 'w') as f:
+                f.write("[.ShellClassInfo]\n")
+                f.write(f"IconFile={icon_file}\n")
+                f.write("IconIndex=0\n")
+                f.write("ConfirmFileOp=0\n")
+            
+            os.system(f'attrib +s +h "{ini_path}"')
+            carpetas_con_iconos += 1
+            carpetas_procesadas.append(category)
+            
+        except Exception as e:
+            if show_icons_messages:
+                print(f"{Colors.RED}   ❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
+
+    # Mostrar resumen final
+    if carpetas_con_iconos > 0:
+        print(f"{Colors.YELLOW}  ↪🗂️  Carpetas con sus iconos correspondientes: {', '.join(carpetas_procesadas)}{Colors.RESET} \n")
+    else:
+        print(f"{Colors.YELLOW}↪⚠️ No se encontraron carpetas con íconos aplicados{Colors.RESET}")
 
 def organize_downloads():
     downloads_folder = find_downloads_folder()
