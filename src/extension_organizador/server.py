@@ -1,9 +1,19 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import shutil
 import winreg
 from typing import Tuple, Dict, List
+import logging
+import signal
+import sys
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from collections import deque
+
+# Configuración de logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Constantes
 EXTENSIONS: Dict[str, List[str]] = {
@@ -28,6 +38,9 @@ COLORS = {
     'warning': '\033[93m',
     'reset': '\033[0m'
 }
+
+# Registro de archivos procesados recientemente
+processed_files = deque(maxlen=10)
 
 def print_colored(message: str, color: str) -> None:
     print(f"{COLORS.get(color, '')}{message}{COLORS['reset']}")
@@ -142,6 +155,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
         self._set_headers()
+        logging.info(f"{COLORS['info']}🌐 OPTIONS request received{COLORS['reset']}")
 
     def do_POST(self):
         self._set_headers()
@@ -154,19 +168,73 @@ class RequestHandler(BaseHTTPRequestHandler):
         category = get_category(file_path)
         destination_folder = os.path.join(downloads_folder, category)
         
+        if file_path in processed_files:
+            logging.info(f"{COLORS['info']}📁 File already processed: {file_path}{COLORS['reset']}")
+            response = {'message': 'File already processed'}
+            self.wfile.write(json.dumps(response).encode())
+            return
+
         dest_path = move_item(file_path, destination_folder)
         if dest_path:
+            processed_files.append(file_path)
             response = {'message': 'File moved successfully', 'destination': dest_path}
             self.wfile.write(json.dumps(response).encode())
+            logging.info(f"{COLORS['success']}📁 File moved successfully: {file_path} -> {dest_path}{COLORS['reset']}")
         else:
             self.send_response(500)
             self.end_headers()
+            response = {'message': 'Failed to move file'}
+            self.wfile.write(json.dumps(response).encode())
+            logging.error(f"{COLORS['error']}❌ Failed to move file: {file_path}{COLORS['reset']}")
 
-def run(server_class=HTTPServer, handler_class=RequestHandler, port=8000):
+def run(server_class=ThreadingHTTPServer, handler_class=RequestHandler, port=8000):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print(f'Starting server on port {port}')
+    logging.info(f"{COLORS['info']}🚀 Starting server on port {port}{COLORS['reset']}")
     httpd.serve_forever()
 
+class DownloadEventHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if not event.is_directory and event.src_path not in processed_files:
+            processed_files.append(event.src_path)
+            logging.info(f"{COLORS['info']}📂 Archivo añadido: {event.src_path}{COLORS['reset']}")
+            print_colored(f"📂 Archivo añadido: {event.src_path}", 'info')
+            organize_downloads()
+
+    def on_deleted(self, event):
+        if not event.is_directory and event.src_path not in processed_files:
+            processed_files.append(event.src_path)
+            logging.info(f"{COLORS['warning']}🗑️ Archivo eliminado: {event.src_path}{COLORS['reset']}")
+            print_colored(f"🗑️ Archivo eliminado: {event.src_path}", 'warning')
+
+def monitor_downloads():
+    """Monitorea la carpeta de descargas y organiza los archivos cuando se detectan cambios"""
+    downloads_folder = find_downloads_folder()
+    logging.info(f"{COLORS['info']}🔍 Monitoreando la carpeta de descargas: {downloads_folder}{COLORS['reset']}")
+    event_handler = DownloadEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, downloads_folder, recursive=False)
+    observer.start()
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+def signal_handler(sig, frame):
+    logging.info(f"{COLORS['warning']}🛑 Señal de interrupción recibida, deteniendo el servidor...{COLORS['reset']}")
+    sys.exit(0)
+
 if __name__ == "__main__":
-    run() 
+    signal.signal(signal.SIGINT, signal_handler)
+    from threading import Thread
+    server_thread = Thread(target=run)
+    monitor_thread = Thread(target=monitor_downloads)
+    
+    server_thread.start()
+    monitor_thread.start()
+    
+    server_thread.join()
+    monitor_thread.join()

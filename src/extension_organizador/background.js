@@ -34,7 +34,9 @@ function processBatchDownloads(downloadIds) {
           if (!response.ok) {
             throw new Error(`Error en la respuesta del servidor: ${response.statusText}`);
           }
-          return response.json();
+          return response.json().catch(() => {
+            throw new Error('Respuesta JSON inválida');
+          });
         })
         .then(resolve)
         .catch(reject);
@@ -48,24 +50,22 @@ function processBatchDownloads(downloadIds) {
         .map(result => result.destination)
         .filter(Boolean);
 
-      const locationsMessage = destinations
-        .map(path => `• ${path}`)
-        .join('\n');
-
       const getFolderName = (path) => {
         const parts = path.split('\\');
         return parts[parts.length - 2];
       };
+
+      const message = destinations.map(path => {
+        const folderName = getFolderName(path);
+        const fileName = path.split('\\').pop();
+        return `Archivo: "${fileName}"\nEnviado a: "${folderName}"`;
+      }).join('\n\n');
       
       chrome.notifications.create({
         type: "basic",
         iconUrl: "verificar.png",
         title: `${results.length} archivo(s) organizados`,
-        message: destinations.map(path => {
-          const folderName = getFolderName(path);
-          const fileName = path.split('\\').pop();
-          return `Archivo: "${fileName}"\nEnviado a: "${folderName}"`;
-        }).join('\n\n')
+        message: message
       });
     }) 
     .catch(error => {
