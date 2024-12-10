@@ -14,7 +14,7 @@ EXTENSIONS: Dict[str, List[str]] = {
     'others': []
 }
 
-CONFIG = {
+CONFIG = { 
     'enable_icons': True,
     'move_folders': True
 }

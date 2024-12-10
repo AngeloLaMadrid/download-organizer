@@ -146,4 +146,4 @@ def main():
         print_colored(f"❌ Error: {e}", 'error')
 
 if __name__ == "__main__":
-    main()
+    main() 

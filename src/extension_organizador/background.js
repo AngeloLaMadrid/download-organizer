@@ -67,7 +67,7 @@ function processBatchDownloads(downloadIds) {
           return `Archivo: "${fileName}"\nEnviado a: "${folderName}"`;
         }).join('\n\n')
       });
-    })
+    }) 
     .catch(error => {
       console.error('Error:', error);
       chrome.notifications.create({
