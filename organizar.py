@@ -5,7 +5,7 @@ import winreg
 
 # Variables de configuración
 enable_icons_check = True       # Variable para habilitar la verificación de íconos (Buen diseño)
-move_folders_to_others = False  # Sirve para mover carpetas no reconocidas a la carpeta 'others' (Le da un mejor orden al no tener carpetas sueltas)
+move_folders_to_others = True  # Sirve para mover carpetas no reconocidas a la carpeta 'others' (Le da un mejor orden al no tener carpetas sueltas)
 
 # Definición de colores usando códigos ANSI
 class Colors:
