@@ -74,7 +74,10 @@ def move_file(file_path, destination_folder):
 
 def check_folder_icons(downloads_folder):
     """Verifica que cada carpeta tenga su ícono correspondiente"""
-    icons_folder = os.path.join(downloads_folder, "icons")
+    # Obtener la ruta donde está el script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    icons_folder = os.path.join(script_dir, "icons")
+    
     if not os.path.exists(icons_folder):
         print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
         return
