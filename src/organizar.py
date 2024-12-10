@@ -33,8 +33,7 @@ def print_colored(message: str, color: str) -> None:
 def find_downloads_folder() -> str:
     """Encuentra la carpeta de descargas del usuario"""
     try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
-                          r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders") as key:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders") as key:
             downloads_path = winreg.QueryValueEx(key, "{374DE290-123F-4565-9164-39C4925E467B}")[0]
             if os.path.exists(downloads_path):
                 return downloads_path

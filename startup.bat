@@ -1,6 +1,6 @@
 @echo off
 REM Ejecutar el script de Python para organizar descargas
- 
+
 REM Obtener la ruta del script actual
 set SCRIPT_PATH=%~dp0
 
