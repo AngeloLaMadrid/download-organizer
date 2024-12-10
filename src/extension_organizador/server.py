@@ -169,13 +169,4 @@ def run(server_class=HTTPServer, handler_class=RequestHandler, port=8000):
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    try:
-        print_colored("🚀 Iniciando organización...", 'info')
-        success, failed = organize_downloads()
-        print_colored(f"🎉 Completado: {success} elementos organizados", 'success')
-        if failed > 0:
-            print_colored(f"⚠️ {failed} errores", 'error')
-    except Exception as e:
-        print_colored(f"❌ Error: {e}", 'error')
-    
     run()

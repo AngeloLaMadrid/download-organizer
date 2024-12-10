@@ -16,7 +16,6 @@ chrome.downloads.onChanged.addListener(function(downloadDelta) {
 });
 
 function processBatchDownloads(downloadIds) {
-  // Procesar cada descarga individualmente
   const promises = downloadIds.map(id => 
     new Promise((resolve, reject) => {
       chrome.downloads.search({id: id}, function(downloads) {
@@ -31,7 +30,12 @@ function processBatchDownloads(downloadIds) {
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({file_path: download.filename})
         })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error en la respuesta del servidor: ${response.statusText}`);
+          }
+          return response.json();
+        })
         .then(resolve)
         .catch(reject);
       });
@@ -40,23 +44,19 @@ function processBatchDownloads(downloadIds) {
 
   Promise.all(promises)
     .then(results => {
-      // Extraer las rutas de destino
       const destinations = results
         .map(result => result.destination)
-        .filter(Boolean); // Eliminar valores nulos o undefined
+        .filter(Boolean);
 
-      // Crear mensaje con las ubicaciones
       const locationsMessage = destinations
         .map(path => `• ${path}`)
         .join('\n');
 
-      // Mostrar una única notificación
       const getFolderName = (path) => {
         const parts = path.split('\\');
-        return parts[parts.length - 2]; // Obtiene el penúltimo elemento (nombre de la carpeta)
+        return parts[parts.length - 2];
       };
       
-      // En la notificación:
       chrome.notifications.create({
         type: "basic",
         iconUrl: "verificar.png",
