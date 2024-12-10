@@ -78,18 +78,17 @@ def move_file(file_path, destination_folder):
 
 def check_folder_icons(downloads_folder):
     """Verifica y aplica íconos a cada carpeta"""
-    
-    show_icons_messages = False  # Cambiar a True o False para mostrar mensajes en consola !!!!!!!
-    
-    
+    show_icons_messages = True
     script_dir = os.path.dirname(os.path.abspath(__file__))
     icons_folder = os.path.join(script_dir, "icons")
-    
+    carpetas_con_iconos = 0
+    carpetas_procesadas = []
+
     if not os.path.exists(icons_folder):
         if show_icons_messages:
             print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
         return
-    
+
     for category in extensiones:
         folder_path = os.path.join(downloads_folder, category)
         icon_file = os.path.join(icons_folder, f"{category}.ico")
@@ -105,8 +104,8 @@ def check_folder_icons(downloads_folder):
                 with open(ini_path, 'r') as f:
                     content = f.read()
                     if icon_file in content:
-                        if show_icons_messages:
-                            print(f"{Colors.YELLOW}   📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
+                        carpetas_con_iconos += 1
+                        carpetas_procesadas.append(category)
                         continue
             except Exception:
                 pass
@@ -121,13 +120,18 @@ def check_folder_icons(downloads_folder):
                 f.write("ConfirmFileOp=0\n")
             
             os.system(f'attrib +s +h "{ini_path}"')
-            if show_icons_messages:
-                print(f"{Colors.GREEN}✅ Ícono aplicado a la carpeta '{category}'{Colors.RESET}")
+            carpetas_con_iconos += 1
+            carpetas_procesadas.append(category)
             
         except Exception as e:
             if show_icons_messages:
-                print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
+                print(f"{Colors.RED}   ❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
 
+    # Mostrar resumen final
+    if carpetas_con_iconos > 0:
+        print(f"{Colors.YELLOW}  ↪🗂️  Carpetas con sus iconos correspondientes: {', '.join(carpetas_procesadas)}{Colors.RESET} \n")
+    else:
+        print(f"{Colors.YELLOW}↪⚠️ No se encontraron carpetas con íconos aplicados{Colors.RESET}")
 def organize_downloads():
     downloads_folder = find_downloads_folder()
     print(f"{Colors.CYAN}📂 Usando carpeta de descargas: {downloads_folder}{Colors.RESET}")
