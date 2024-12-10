@@ -72,13 +72,19 @@ def move_file(file_path, destination_folder):
         print(f"{Colors.RED}❌ Error al mover {filename}: {e}{Colors.RESET}")
         return False
 
+
+
 def check_folder_icons(downloads_folder):
     """Verifica y aplica íconos a cada carpeta"""
+    show_icons_messages = True  # Cambiar a True o False para mostrar mensajes en consola
+    
+    
     script_dir = os.path.dirname(os.path.abspath(__file__))
     icons_folder = os.path.join(script_dir, "icons")
     
     if not os.path.exists(icons_folder):
-        print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
+        if show_icons_messages:
+            print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
         return
     
     for category in extensiones:
@@ -87,38 +93,37 @@ def check_folder_icons(downloads_folder):
         ini_path = os.path.join(folder_path, "desktop.ini")
         
         if not os.path.exists(icon_file):
-            print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
+            if show_icons_messages:
+                print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
             continue
             
-        # Verificar si ya existe el desktop.ini y tiene el ícono configurado
         if os.path.exists(ini_path):
             try:
                 with open(ini_path, 'r') as f:
                     content = f.read()
                     if icon_file in content:
-                        print(f"{Colors.YELLOW}📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
+                        if show_icons_messages:
+                            print(f"{Colors.YELLOW}📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
                         continue
             except Exception:
-                pass  # Si hay error al leer, intentamos crear uno nuevo
+                pass
             
-        # Crear el archivo desktop.ini
         try:
-            # Asegurar que la carpeta esté marcada como sistema
             os.system(f'attrib +s "{folder_path}"')
             
-            # Crear y escribir el desktop.ini
             with open(ini_path, 'w') as f:
                 f.write("[.ShellClassInfo]\n")
                 f.write(f"IconFile={icon_file}\n")
                 f.write("IconIndex=0\n")
                 f.write("ConfirmFileOp=0\n")
             
-            # Marcar desktop.ini como archivo de sistema y oculto
             os.system(f'attrib +s +h "{ini_path}"')
-            print(f"{Colors.GREEN}✅ Ícono aplicado a la carpeta '{category}'{Colors.RESET}")
+            if show_icons_messages:
+                print(f"{Colors.GREEN}✅ Ícono aplicado a la carpeta '{category}'{Colors.RESET}")
             
         except Exception as e:
-            print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
+            if show_icons_messages:
+                print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
 
 def organize_downloads():
     """Organiza los archivos de la carpeta de descargas"""
