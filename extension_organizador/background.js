@@ -26,8 +26,16 @@ chrome.downloads.onChanged.addListener(function(downloadDelta) {
             file_path: download.filename
           })
         })
-        .then(response => response.text())
-        .then(data => console.log(data))
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          chrome.notifications.create({
+            type: "basic",
+            iconUrl: "verificar.png",
+            title: "Archivo Movido",
+            message: `El archivo se movió a: ${data.destination}`
+          });
+        })
         .catch(error => console.error('Error:', error));
       });
     });
