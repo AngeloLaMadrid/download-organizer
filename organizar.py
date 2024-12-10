@@ -1,9 +1,11 @@
+# Script que cree y comparto para organizar los archivos de la carpeta de descargas de Windows con buen diseño, estilo y orden.
 import os
 import shutil
 import winreg
 
-# Variable para habilitar la verificación de íconos
-enable_icons_check = True
+# Variables de configuración
+enable_icons_check = True       # Variable para habilitar la verificación de íconos (Buen diseño)
+move_folders_to_others = False  # Sirve para mover carpetas no reconocidas a la carpeta 'others' (Le da un mejor orden al no tener carpetas sueltas)
 
 # Definición de colores usando códigos ANSI
 class Colors:
@@ -127,7 +129,6 @@ def check_folder_icons(downloads_folder):
                 print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
 
 def organize_downloads():
-    """Organiza los archivos de la carpeta de descargas"""
     downloads_folder = find_downloads_folder()
     print(f"{Colors.CYAN}📂 Usando carpeta de descargas: {downloads_folder}{Colors.RESET}")
     processed = failed = 0
@@ -146,9 +147,19 @@ def organize_downloads():
                 processed += 1
             else:
                 failed += 1
+        elif os.path.isdir(file_path) and move_folders_to_others:
+            if filename not in extensiones.keys() and filename != 'others':
+                others_path = os.path.join(downloads_folder, 'others')
+                try:
+                    os.makedirs(others_path, exist_ok=True)
+                    shutil.move(file_path, os.path.join(others_path, filename))
+                    processed += 1
+                    print(f"{Colors.GREEN}✅ Carpeta '{filename}' movida a 'others'{Colors.RESET}")
+                except Exception as e:
+                    failed += 1
+                    print(f"{Colors.RED}❌ Error al mover la carpeta '{filename}': {str(e)}{Colors.RESET}")
     
     return processed, failed
-
 if __name__ == "__main__":
     try:
         print(f"{Colors.YELLOW}🚀 Iniciando organización de archivos...{Colors.RESET}")
