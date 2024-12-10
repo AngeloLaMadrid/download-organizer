@@ -1,10 +1,14 @@
 import os
 import shutil
 import winreg
-from colorama import init, Fore, Style
 
-# Inicializar colorama
-init(autoreset=True)
+# Definición de colores usando códigos ANSI
+class Colors:
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    CYAN = '\033[96m'
+    YELLOW = '\033[93m'
+    RESET = '\033[0m'
 
 extensiones = {
     'videos': ['.avi', '.flv', '.m4v', '.mkv', '.mov', '.mp4', '.wmv', '.webm', '.3gp'],
@@ -19,7 +23,6 @@ extensiones = {
 def find_downloads_folder():
     """Encuentra la carpeta de descargas actual del usuario usando el registro de Windows"""
     try:
-        # Abrir la clave del registro que contiene la ubicación de descargas
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
                           r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders") as key:
             downloads_path = winreg.QueryValueEx(key, "{374DE290-123F-4565-9164-39C4925E467B}")[0]
@@ -27,7 +30,6 @@ def find_downloads_folder():
         if os.path.exists(downloads_path):
             return downloads_path
     except Exception:
-        # Si hay algún error con el registro, intentar el método de respaldo
         user_profile = os.environ['USERPROFILE']
         possible_download_names = ['Downloads', 'Descargas', 'Download']
         
@@ -36,7 +38,6 @@ def find_downloads_folder():
             if os.path.exists(path):
                 return path
     
-    # Si todo lo demás falla, devolver la ruta predeterminada
     return os.path.join(os.environ['USERPROFILE'], 'Downloads')
 
 def get_file_category(filename):
@@ -61,16 +62,16 @@ def move_file(file_path, destination_folder):
     
     try:
         shutil.move(file_path, dest_path)
-        print(f"{Fore.GREEN}✅ Archivo movido: {filename} -> {destination_folder}")
+        print(f"{Colors.GREEN}✅ Archivo movido: {filename} -> {destination_folder}{Colors.RESET}")
         return True
     except Exception as e:
-        print(f"{Fore.RED}❌ Error al mover {filename}: {e}")
+        print(f"{Colors.RED}❌ Error al mover {filename}: {e}{Colors.RESET}")
         return False
 
 def organize_downloads():
     """Organiza los archivos de la carpeta de descargas"""
     downloads_folder = find_downloads_folder()
-    print(f"{Fore.CYAN}📂 Usando carpeta de descargas: {downloads_folder}")
+    print(f"{Colors.CYAN}📂 Usando carpeta de descargas: {downloads_folder}{Colors.RESET}")
     processed = failed = 0
     
     for category in extensiones:
@@ -89,10 +90,10 @@ def organize_downloads():
 
 if __name__ == "__main__":
     try:
-        print(f"{Fore.YELLOW}🚀 Iniciando organización de archivos...")
+        print(f"{Colors.YELLOW}🚀 Iniciando organización de archivos...{Colors.RESET}")
         processed, failed = organize_downloads()
-        print(f"{Fore.GREEN}🎉 Proceso completado: {processed} archivos organizados")
+        print(f"{Colors.GREEN}🎉 Proceso completado: {processed} archivos organizados{Colors.RESET}")
         if failed > 0:
-            print(f"{Fore.RED}⚠️ {failed} errores")
+            print(f"{Colors.RED}⚠️ {failed} errores{Colors.RESET}")
     except Exception as e:
-        print(f"{Fore.RED}❌ Error: {e}")
+        print(f"{Colors.RED}❌ Error: {e}{Colors.RESET}")
