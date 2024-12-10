@@ -51,11 +51,21 @@ function processBatchDownloads(downloadIds) {
         .join('\n');
 
       // Mostrar una única notificación
+      const getFolderName = (path) => {
+        const parts = path.split('\\');
+        return parts[parts.length - 2]; // Obtiene el penúltimo elemento (nombre de la carpeta)
+      };
+      
+      // En la notificación:
       chrome.notifications.create({
         type: "basic",
         iconUrl: "verificar.png",
         title: `${results.length} archivo(s) organizados`,
-        message: locationsMessage || "No se pudo obtener la ubicación"
+        message: destinations.map(path => {
+          const folderName = getFolderName(path);
+          const fileName = path.split('\\').pop();
+          return `Archivo: "${fileName}"\nEnviado a: "${folderName}"`;
+        }).join('\n\n')
       });
     })
     .catch(error => {
