@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Notificador de Descargas",
+  "version": "1.0",
+  "description": "Muestra una notificación cuando se completa una descarga",
+  "permissions": [
+    "downloads",
+    "notifications",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
