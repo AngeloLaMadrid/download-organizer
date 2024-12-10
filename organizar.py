@@ -2,6 +2,9 @@ import os
 import shutil
 import winreg
 
+# Variable para habilitar la verificación de íconos
+enable_icons_check = True
+
 # Definición de colores usando códigos ANSI
 class Colors:
     GREEN = '\033[92m'
@@ -19,6 +22,7 @@ extensiones = {
     'images': ['.bmp', '.gif', '.ico', '.jpeg', '.jpg', '.png', '.svg', '.tiff', '.webp'],
     'others': []
 }
+
 
 def find_downloads_folder():
     """Encuentra la carpeta de descargas actual del usuario usando el registro de Windows"""
@@ -68,6 +72,19 @@ def move_file(file_path, destination_folder):
         print(f"{Colors.RED}❌ Error al mover {filename}: {e}{Colors.RESET}")
         return False
 
+def check_folder_icons(downloads_folder):
+    """Verifica que cada carpeta tenga su ícono correspondiente"""
+    icons_folder = os.path.join(downloads_folder, "icons")
+    if not os.path.exists(icons_folder):
+        print(f"{Colors.YELLOW}⚠️ Carpeta de íconos no encontrada: {icons_folder}{Colors.RESET}")
+        return
+    
+    for category in extensiones:
+        folder_path = os.path.join(downloads_folder, category)
+        icon_file = os.path.join(icons_folder, f"{category}.ico")
+        if not os.path.exists(icon_file):
+            print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
+
 def organize_downloads():
     """Organiza los archivos de la carpeta de descargas"""
     downloads_folder = find_downloads_folder()
@@ -76,6 +93,9 @@ def organize_downloads():
     
     for category in extensiones:
         os.makedirs(os.path.join(downloads_folder, category), exist_ok=True)
+    
+    if enable_icons_check:
+        check_folder_icons(downloads_folder)
     
     for filename in os.listdir(downloads_folder):
         file_path = os.path.join(downloads_folder, filename)
