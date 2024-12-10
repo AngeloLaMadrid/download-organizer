@@ -94,7 +94,7 @@ def check_folder_icons(downloads_folder):
         
         if not os.path.exists(icon_file):
             if show_icons_messages:
-                print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
+                print(f"{Colors.RED}   ⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
             continue
             
         if os.path.exists(ini_path):
@@ -103,7 +103,7 @@ def check_folder_icons(downloads_folder):
                     content = f.read()
                     if icon_file in content:
                         if show_icons_messages:
-                            print(f"{Colors.YELLOW}📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
+                            print(f"{Colors.YELLOW}   📌 Ícono ya aplicado en la carpeta '{category}'{Colors.RESET}")
                         continue
             except Exception:
                 pass
