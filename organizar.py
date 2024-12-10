@@ -73,8 +73,7 @@ def move_file(file_path, destination_folder):
         return False
 
 def check_folder_icons(downloads_folder):
-    """Verifica que cada carpeta tenga su ícono correspondiente"""
-    # Obtener la ruta donde está el script
+    """Verifica y aplica íconos a cada carpeta"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     icons_folder = os.path.join(script_dir, "icons")
     
@@ -87,6 +86,27 @@ def check_folder_icons(downloads_folder):
         icon_file = os.path.join(icons_folder, f"{category}.ico")
         if not os.path.exists(icon_file):
             print(f"{Colors.RED}⚠️ Falta el ícono para la carpeta '{category}': {icon_file}{Colors.RESET}")
+            continue
+            
+        # Crear el archivo desktop.ini
+        ini_path = os.path.join(folder_path, "desktop.ini")
+        try:
+            # Asegurar que la carpeta esté marcada como sistema
+            os.system(f'attrib +s "{folder_path}"')
+            
+            # Crear y escribir el desktop.ini
+            with open(ini_path, 'w') as f:
+                f.write("[.ShellClassInfo]\n")
+                f.write(f"IconFile={icon_file}\n")
+                f.write("IconIndex=0\n")
+                f.write("ConfirmFileOp=0\n")
+            
+            # Marcar desktop.ini como archivo de sistema y oculto
+            os.system(f'attrib +s +h "{ini_path}"')
+            print(f"{Colors.GREEN}✅ Ícono aplicado a la carpeta '{category}'{Colors.RESET}")
+            
+        except Exception as e:
+            print(f"{Colors.RED}❌ Error al aplicar el ícono a '{category}': {str(e)}{Colors.RESET}")
 
 def organize_downloads():
     """Organiza los archivos de la carpeta de descargas"""
