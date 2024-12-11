@@ -2,7 +2,7 @@ import os
 import shutil
 import winreg
 from typing import Tuple, Dict, List
-
+ 
 # Constantes
 EXTENSIONS: Dict[str, List[str]] = {
     'videos': ['.avi', '.flv', '.m4v', '.mkv', '.mov', '.mp4', '.wmv', '.webm', '.3gp'],
