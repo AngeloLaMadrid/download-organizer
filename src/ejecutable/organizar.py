@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import winreg
 from typing import Tuple, Dict, List
 
@@ -53,27 +54,75 @@ def get_category(filename: str) -> str:
     ext = os.path.splitext(filename.lower())[1]
     return next((cat for cat, exts in EXTENSIONS.items() if ext in exts), 'others')
 
+def setup_folder_icons() -> None:
+    """Configura los iconos iniciales en la carpeta images"""
+    downloads = find_downloads_folder()
+    images_path = os.path.join(downloads, 'images')
+    icons_path = os.path.join(images_path, 'folder_icons')
+    
+    try:
+        # Crear carpeta de iconos si no existe
+        if not os.path.exists(icons_path):
+            os.makedirs(icons_path)
+            
+        # Copiar iconos originales a la carpeta images/folder_icons
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        original_icons = os.path.join(script_dir, "icons")
+        
+        for category in EXTENSIONS:
+            icon_name = f"{category}.ico"
+            src_icon = os.path.join(original_icons, icon_name)
+            dst_icon = os.path.join(icons_path, icon_name)
+            
+            if os.path.exists(src_icon) and not os.path.exists(dst_icon):
+                shutil.copy2(src_icon, dst_icon)
+                print_colored(f"✅ Icono copiado: {icon_name}", 'success')
+                
+        return icons_path
+    except Exception as e:
+        print_colored(f"❌ Error configurando iconos: {e}", 'error')
+        return None
+
 def setup_folder_icon(folder_path: str, category: str) -> bool:
-    """Configura el ícono de una carpeta"""
+    """
+    Configura el ícono personalizado para una carpeta
+    
+    Args:
+        folder_path (str): Ruta de la carpeta a configurar
+        category (str): Categoría/nombre del ícono a usar
+        
+    Returns:
+        bool: True si se configuró correctamente, False en caso contrario
+    """
+    # Si los íconos están deshabilitados en la configuración, salir
     if not CONFIG['enable_icons']:
         return False
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    icon_path = os.path.join(script_dir, "icons", f"{category}.ico")
-    ini_path = os.path.join(folder_path, "desktop.ini")
-
-    if not os.path.exists(icon_path):
-        return False
-
+        
     try:
+        # Obtener rutas
+        downloads = find_downloads_folder()
+        icons_path = os.path.join(downloads, 'images', 'folder_icons')
+        icon_path = os.path.join(icons_path, f"{category}.ico")
+        ini_path = os.path.join(folder_path, "desktop.ini")
+
+        # Verificar si existe la carpeta de íconos
+        if not os.path.exists(icons_path):
+            icons_path = setup_folder_icons()
+            if not icons_path:
+                return False
+
+        # Configurar atributos de la carpeta y crear desktop.ini
         os.system(f'attrib +s "{folder_path}"')
         with open(ini_path, 'w') as f:
             f.write(f"[.ShellClassInfo]\nIconFile={icon_path}\nIconIndex=0\nConfirmFileOp=0\n")
         os.system(f'attrib +s +h "{ini_path}"')
+        
         return True
-    except Exception:
+        
+    except Exception as e:
+        print_colored(f"❌ Error configurando ícono para {category}: {e}", 'error')
         return False
-
+    
 def move_item(src, dest):
     """Mueve un elemento a la carpeta destino"""
     import sys
