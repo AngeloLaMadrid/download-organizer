@@ -1,80 +1,55 @@
-let timeoutId;
 const NOTIFICATION_DELAY = 500;
 const notificationQueue = new Set();
+let timeoutId;
 
-chrome.downloads.onChanged.addListener(function(downloadDelta) {
-  if (!downloadDelta.state || downloadDelta.state.current !== 'complete') return;
+const getPathInfo = path => {
+  const parts = path.split('\\');
+  return {
+    fileName: parts.pop(),
+    folderName: parts.pop()
+  };
+};
 
+chrome.downloads.onChanged.addListener(({id, state}) => {
+  if (state?.current !== 'complete') return;
+  
   clearTimeout(timeoutId);
-  const downloadId = downloadDelta.id;
-  notificationQueue.add(downloadId);
-
-  timeoutId = setTimeout(() => {
-    processBatchDownloads(Array.from(notificationQueue));
-    notificationQueue.clear();
-  }, NOTIFICATION_DELAY);
-});
-
-function processBatchDownloads(downloadIds) {
-  const promises = downloadIds.map(id => 
-    new Promise((resolve, reject) => {
-      chrome.downloads.search({id: id}, function(downloads) {
-        if (!downloads || !downloads.length) {
-          reject(new Error(`No se encontró la descarga ${id}`));
-          return;
-        }
-
-        const download = downloads[0];
-        fetch('http://localhost:8000', {
+  notificationQueue.add(id);
+  timeoutId = setTimeout(async () => {
+    try {
+      const downloads = await Promise.all([...notificationQueue].map(async downloadId => {
+        const [download] = await chrome.downloads.search({id: downloadId});
+        if (!download) throw new Error(`Download ${downloadId} not found`);
+        
+        const response = await fetch('http://localhost:8000', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({file_path: download.filename})
+        });
+        return response.json();
+      }));
+
+      const message = downloads
+        .map(data => {
+          const {fileName, folderName} = getPathInfo(data.destination);
+          return `Archivo: ${fileName}\nCarpeta: ${folderName}`;
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error en la respuesta del servidor: ${response.statusText}`);
-          }
-          return response.json().catch(() => {
-            throw new Error('Respuesta JSON inválida');
-          });
-        })
-        .then(resolve)
-        .catch(reject);
-      });
-    })
-  );
+        .join('\n\n');
 
-  Promise.all(promises)
-    .then(results => {
-      const destinations = results
-        .map(result => result.destination)
-        .filter(Boolean);
-
-      const getFolderName = (path) => {
-        const parts = path.split('\\');
-        return parts[parts.length - 2];
-      };
-
-      const message = destinations.map(path => {
-        const folderName = getFolderName(path);
-        const fileName = path.split('\\').pop();
-        return `Archivo: "${fileName}"\nEnviado a: "${folderName}"`;
-      }).join('\n\n');
-      
-      chrome.notifications.create({
+      chrome.notifications.create(`download-${Date.now()}`, {
         type: "basic",
         iconUrl: "verificar.png",
-        title: `${results.length} archivo(s) organizados`,
-        message: message
+        title: "Archivos Organizados",
+        message
       });
-    }) 
-    .catch(error => {
-      console.error('Error:', error);
-      chrome.notifications.create({
+    } catch (error) {
+      chrome.notifications.create(`error-${Date.now()}`, {
         type: "basic",
         iconUrl: "error.png",
         title: "Error",
-        message: "Ocurrió un error al organizar los archivos"
+        message: "Error al organizar los archivos"
       });
-    });
-}
+    }
+    notificationQueue.clear();
+  }, NOTIFICATION_DELAY);
+});
