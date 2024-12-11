@@ -28,5 +28,5 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,
-    icon='icons\\programs.ico'  # Cambiar app.ico por programs.ico
+    icon='logo.ico'  # Cambiar a logo.ico
 )

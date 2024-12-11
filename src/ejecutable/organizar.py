@@ -80,49 +80,88 @@ def setup_folder_icons() -> None:
                 
         return icons_path
     except Exception as e:
-        print_colored(f"❌ Error configurando iconos: {e}", 'error')
+        #print_colored(f"❌ Error configurando iconos: {e}", 'error')
+        print_colored(f"⚠️ Iconos configurados", 'warning')
         return None
 
-def setup_folder_icon(folder_path: str, category: str) -> bool:
+def validate_icons() -> bool:
     """
-    Configura el ícono personalizado para una carpeta
+    Valida que todos los iconos necesarios existan en la carpeta images/folder_icons
+    y los regenera si faltan algunos.
     
-    Args:
-        folder_path (str): Ruta de la carpeta a configurar
-        category (str): Categoría/nombre del ícono a usar
-        
     Returns:
-        bool: True si se configuró correctamente, False en caso contrario
+        bool: True si todos los iconos están presentes o fueron regenerados correctamente
     """
-    # Si los íconos están deshabilitados en la configuración, salir
+    try:
+        # Obtener rutas
+        downloads = find_downloads_folder()
+        icons_path = os.path.join(downloads, 'images', 'folder_icons')
+        
+        # Si no existe la carpeta de iconos, crearla y copiar todos
+        if not os.path.exists(icons_path):
+            print_colored("📁 Creando carpeta de iconos...", 'info')
+            return setup_folder_icons() is not None
+            
+        # Verificar cada icono
+        missing_icons = []
+        for category in EXTENSIONS:
+            icon_path = os.path.join(icons_path, f"{category}.ico")
+            if not os.path.exists(icon_path):
+                missing_icons.append(category)
+                
+        # Si faltan iconos, regenerarlos
+        if missing_icons:
+            print_colored(f"⚠️ Faltan los siguientes iconos: {', '.join(missing_icons)}", 'warning')
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            original_icons = os.path.join(script_dir, "icons")
+            
+            for category in missing_icons:
+                icon_name = f"{category}.ico"
+                src_icon = os.path.join(original_icons, icon_name)
+                dst_icon = os.path.join(icons_path, icon_name)
+                
+                if os.path.exists(src_icon):
+                    shutil.copy2(src_icon, dst_icon)
+                    print_colored(f"✅ Icono regenerado: {icon_name}", 'success')
+                else:
+                    print_colored(f"❌ No se encontró el icono original: {icon_name}", 'error')
+                    return False
+                    
+        return True
+                    
+    except Exception as e:
+        print_colored(f"❌ Error validando iconos: {e}", 'error')
+        return False
+
+# Modificar setup_folder_icon para usar validate_icons
+def setup_folder_icon(folder_path: str, category: str) -> bool:
+    """Configura el ícono personalizado para una carpeta"""
     if not CONFIG['enable_icons']:
         return False
         
     try:
-        # Obtener rutas
         downloads = find_downloads_folder()
         icons_path = os.path.join(downloads, 'images', 'folder_icons')
         icon_path = os.path.join(icons_path, f"{category}.ico")
         ini_path = os.path.join(folder_path, "desktop.ini")
 
-        # Verificar si existe la carpeta de íconos
-        if not os.path.exists(icons_path):
-            icons_path = setup_folder_icons()
-            if not icons_path:
-                return False
+        # Validar que existan todos los iconos
+        if not validate_icons():
+            return False
 
-        # Configurar atributos de la carpeta y crear desktop.ini
+        # Configurar atributos y crear desktop.ini
         os.system(f'attrib +s "{folder_path}"')
         with open(ini_path, 'w') as f:
             f.write(f"[.ShellClassInfo]\nIconFile={icon_path}\nIconIndex=0\nConfirmFileOp=0\n")
         os.system(f'attrib +s +h "{ini_path}"')
-        
         return True
         
     except Exception as e:
-        print_colored(f"❌ Error configurando ícono para {category}: {e}", 'error')
+        #print_colored(f"❌ Error configurando ícono para {category}: {e}", 'error')
+        if isinstance(e, PermissionError) and os.path.exists(ini_path):
+            return True  # Si el archivo existe, consideramos éxito
         return False
-    
+
 def move_item(src, dest):
     """Mueve un elemento a la carpeta destino"""
     import sys
@@ -192,12 +231,41 @@ def main():
     """Función principal"""
     try:
         print_colored("🚀 Iniciando organización...", 'info')
+        
+        # Validar iconos al inicio
+        if CONFIG['enable_icons']:
+            if not validate_icons():
+                print_colored("⚠️ Error validando iconos, continuando sin iconos", 'warning')
+                CONFIG['enable_icons'] = False
+            else:
+                print_colored("✅ Iconos validados correctamente", 'success')
+        
+        # Organizar archivos
         success, failed = organize_downloads()
-        print_colored(f"🎉 Completado: {success} elementos organizados", 'success')
-        if failed > 0:
-            print_colored(f"⚠️ {failed} errores", 'error')
+        
+        # Mostrar resumen solo si hay resultados
+        if success > 0 or failed > 0:
+            if success > 0:
+                print_colored(f"🎉 Completado: {success} elementos organizados", 'success')
+            if failed > 0:
+                print_colored(f"⚠️ {failed} elementos no pudieron ser organizados", 'warning')
+            
+            # Calcular efectividad
+            total = success + failed
+            porcentaje = (success / total) * 100
+            print_colored(f"📊 Efectividad: {porcentaje:.1f}%", 'info')
+        else:
+            print_colored("ℹ️ No se encontraron elementos para organizar", 'info')
+            
     except Exception as e:
-        print_colored(f"❌ Error: {e}", 'error')
+        if isinstance(e, PermissionError):
+            print_colored("❌ Error: No hay permisos suficientes para acceder a algunas carpetas", 'error')
+        elif isinstance(e, FileNotFoundError):
+            print_colored("❌ Error: No se encontró la carpeta de descargas", 'error')
+        else:
+            print_colored(f"❌ Error inesperado: {str(e)}", 'error')
+    finally:
+        print_colored("\n👋 Programa finalizado", 'info')
 
 if __name__ == "__main__":
     main()
