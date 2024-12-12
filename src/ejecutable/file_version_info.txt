@@ -25,6 +25,6 @@ VSVersionInfo(
         StringStruct(u'Comments', u'https://github.com/AngeloLaMadrid/download-organizer'),
         StringStruct(u'Developer', u'AngeloLaMadrid')])
       ]),
-    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+    VarFileInfo([VarStruct(u'Translation', [3082, 1200])])  
   ]
 )

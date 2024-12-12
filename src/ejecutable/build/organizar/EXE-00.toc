@@ -3,7 +3,7 @@
  False,
  False,
  ['D:\\Works\\Xz_MisProyectos\\GitHub\\download-organizer\\src\\ejecutable\\logo.ico'],
- versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(1, 3, 0, 0), prodvers=(1, 3, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('040904B0', [versioninfo.StringStruct('CompanyName', 'AngeloLaMadrid'), versioninfo.StringStruct('FileDescription', 'Organizador Automático de Descargas'), versioninfo.StringStruct('FileVersion', '1.3.0'), versioninfo.StringStruct('InternalName', 'organizar'), versioninfo.StringStruct('LegalCopyright', '© 2024 AngeloLaMadrid - MIT License'), versioninfo.StringStruct('OriginalFilename', 'OrganizarDescargas.exe'), versioninfo.StringStruct('ProductName', 'Download Organizer'), versioninfo.StringStruct('ProductVersion', '1.3.0'), versioninfo.StringStruct('Comments', 'https://github.com/AngeloLaMadrid/download-organizer'), versioninfo.StringStruct('Developer', 'AngeloLaMadrid')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [1033, 1200])])]),
+ versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(1, 3, 0, 0), prodvers=(1, 3, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('040904B0', [versioninfo.StringStruct('CompanyName', 'AngeloLaMadrid'), versioninfo.StringStruct('FileDescription', 'Organizador Automático de Descargas'), versioninfo.StringStruct('FileVersion', '1.3.0'), versioninfo.StringStruct('InternalName', 'organizar'), versioninfo.StringStruct('LegalCopyright', '© 2024 AngeloLaMadrid - MIT License'), versioninfo.StringStruct('OriginalFilename', 'OrganizarDescargas.exe'), versioninfo.StringStruct('ProductName', 'Download Organizer'), versioninfo.StringStruct('ProductVersion', '1.3.0'), versioninfo.StringStruct('Comments', 'https://github.com/AngeloLaMadrid/download-organizer'), versioninfo.StringStruct('Developer', 'AngeloLaMadrid')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [3082, 1200])])]),
  True,
  False,
  b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<assembly xmlns='
@@ -233,7 +233,7 @@
  [],
  False,
  False,
- 1734023641,
+ 1734023912,
  [('run.exe',
    'D:\\Programas\\Archivos_BIN\\python3\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
