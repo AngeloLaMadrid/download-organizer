@@ -1,4 +1,3 @@
-# organizar.spec
 # -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -19,18 +18,14 @@ a = Analysis(
     noarchive=False,
 )
 
-pyz = PYZ(
-    a.pure,
-    a.zipped_data,
-    cipher=block_cipher
-)
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,        # Agregado para onefile
-    a.zipfiles,        # Agregado para onefile
-    a.datas,          # Agregado para onefile
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
     name='OrganizarDescargas',
     debug=False,
@@ -44,5 +39,6 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='logo.ico',
+    version='file_version_info.txt', # Nuevo
     uac_admin=True
 )
