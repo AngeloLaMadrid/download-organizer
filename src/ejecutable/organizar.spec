@@ -31,7 +31,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,  # Deshabilitar UPX
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -39,6 +39,6 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='logo.ico',
-    version='file_version_info.txt', # Nuevo
-    uac_admin=True
+    version='file_version_info.txt',
+    uac_admin=False
 )
