@@ -30,7 +30,7 @@ COLORS = {
 def print_colored(message: str, color: str) -> None:
     print(f"{COLORS.get(color, '')}{message}{COLORS['reset']}")
 
-def find_downloads_folder() -> str: 
+def find_downloads_folder() -> str:
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders") as key:
             downloads_path = winreg.QueryValueEx(key, "{374DE290-123F-4565-9164-39C4925E467B}")[0]
@@ -46,7 +46,7 @@ def find_downloads_folder() -> str:
             return path
     return os.path.join(user_profile, 'Downloads')
 
-def get_category(filename: str) -> str:  
+def get_category(filename: str) -> str:
     ext = os.path.splitext(filename.lower())[1]
     return next((cat for cat, exts in EXTENSIONS.items() if ext in exts), 'others')
 
